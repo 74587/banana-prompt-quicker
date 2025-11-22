@@ -327,9 +327,9 @@ class BananaModal {
         const nextBtn = createBtn('下一页', this.currentPage === totalPages, () => this.changePage(1))
 
         const starLink = document.createElement('a')
-        starLink.href = 'https://github.com/glidea/banana-prompt-quicker'
+        starLink.href = 'https://github.com/glidea/banana-prompt-quicker?tab=readme-ov-file#-%E8%B4%A1%E7%8C%AE%E6%8F%90%E7%A4%BA%E8%AF%8D'
         starLink.target = '_blank'
-        starLink.textContent = mobile ? '⭐' : '⭐ Star 项目或贡献 Prompt'
+        starLink.textContent = mobile ? '⭐' : '⭐ 让更多人看到你的创意'
         starLink.style.cssText = `padding: ${mobile ? '10px 14px' : '8px 18px'}; border: 1px solid ${colors.border}; border-radius: 12px; background: ${colors.surface}; color: ${colors.text}; text-decoration: none; font-size: ${mobile ? '14px' : '13px'}; transition: all 0.25s ease; display: flex; align-items: center; gap: 4px; margin-left: ${mobile ? '8px' : '16px'}; font-weight: 500;`
         starLink.onmouseenter = () => {
             if (!mobile) {
