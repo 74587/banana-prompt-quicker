@@ -248,8 +248,6 @@ class BananaModal {
         const container = document.createElement('div')
         // Removed overflow: hidden to allow dropdown to show
         container.style.cssText = `background: ${colors.background}; border-radius: ${mobile ? '24px 24px 0 0' : '20px'}; box-shadow: 0 20px 60px ${colors.shadow}; max-width: ${mobile ? '100%' : '900px'}; width: ${mobile ? '100%' : '90%'}; max-height: ${mobile ? '90vh' : '85vh'}; display: flex; flex-direction: column; ${mobile ? 'margin-top: auto;' : ''}; overflow: visible;`
-        // Remove stopPropagation to allow clicks to bubble to document for dropdown closing
-        // container.onclick = (e) => e.stopPropagation()
 
         const searchSection = this.createSearchSection(colors, mobile)
         const content = this.createContent(colors, mobile)
