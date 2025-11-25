@@ -1,14 +1,63 @@
+async function getRemoteSelector(platform, type) {
+    const CACHE_KEY = 'selector_config'
+    const CACHE_DURATION = 2 * 60 * 1000 // 2分钟
+    const CONFIG_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/selectors.json'
+
+    // 1. 尝试从缓存获取
+    const cached = await chrome.storage.local.get(CACHE_KEY)
+    if (cached[CACHE_KEY]) {
+        const { data, timestamp } = cached[CACHE_KEY]
+        if (Date.now() - timestamp < CACHE_DURATION) {
+            return data[platform]?.[type]
+        }
+    }
+
+    // 2. 请求远程配置
+    try {
+        const response = await fetch(CONFIG_URL)
+        const config = await response.json()
+
+        // 缓存配置
+        await chrome.storage.local.set({
+            [CACHE_KEY]: {
+                data: config,
+                timestamp: Date.now()
+            }
+        })
+
+        return config[platform]?.[type]
+    } catch (error) {
+        console.warn('获取远程 selector 失败:', error)
+        // 降级:使用过期缓存
+        return cached[CACHE_KEY]?.data?.[platform]?.[type]
+    }
+}
+
 class AIStudioAdapter {
     constructor() {
         this.modal = null
     }
 
-    findPromptInput() {
-        return document.querySelector('ms-prompt-input-wrapper textarea')
+    async findPromptInput() {
+        let el = document.querySelector('ms-prompt-input-wrapper textarea')
+        if (el) {
+            return el
+        }
+
+        // Fallback.
+        const s = await getRemoteSelector('aistudio', 'promptInput')
+        return document.querySelector(s)
     }
 
-    findRunButton() {
-        return document.querySelector('ms-run-button button')
+    async findClosestInsertButton() {
+        let el = document.querySelector('ms-run-button button')
+        if (el) {
+            return el
+        }
+
+        // Fallback.
+        const s = await getRemoteSelector('aistudio', 'insertButton')
+        return document.querySelector(s)
     }
 
     getCurrentTheme() {
@@ -83,12 +132,12 @@ class AIStudioAdapter {
         return wrapper
     }
 
-    initButton() {
+    async initButton() {
         if (document.getElementById('banana-btn')) {
             return true
         }
 
-        const runButton = this.findRunButton()
+        const runButton = await this.findClosestInsertButton()
         if (!runButton) {
             return false
         }
@@ -106,8 +155,8 @@ class AIStudioAdapter {
         return true
     }
 
-    insertPrompt(promptText) {
-        const textarea = this.findPromptInput()
+    async insertPrompt(promptText) {
+        const textarea = await this.findPromptInput()
         if (textarea) {
             textarea.value = promptText
             textarea.dispatchEvent(new Event('input', { bubbles: true }))
@@ -118,10 +167,10 @@ class AIStudioAdapter {
     }
 
     waitForElements() {
-        const checkInterval = setInterval(() => {
-            const input = this.findPromptInput()
+        const checkInterval = setInterval(async () => {
+            const input = await this.findPromptInput()
             if (input) {
-                const success = this.initButton()
+                const success = await this.initButton()
                 if (success) {
                     clearInterval(checkInterval)
                 }
@@ -150,18 +199,26 @@ class GeminiAdapter {
         this.modal = null
     }
 
-    findPromptInput() {
-        return document.querySelector('div[contenteditable="true"][role="textbox"]') ||
-            document.querySelector('rich-textarea div[contenteditable="true"]')
+    async findPromptInput() {
+        let el = document.querySelector('div[aria-label="Enter a prompt here"]')
+        if (el) {
+            return el
+        }
+
+        // Fallback.
+        const selector = await getRemoteSelector('gemini', 'promptInput')
+        return document.querySelector(selector)
     }
 
-    findImageButton() {
-        const icon = document.querySelector('mat-icon[data-mat-icon-name="photo_prints"][fonticon="photo_prints"]')
-        if (icon) {
-            const btn = icon.closest('button.toolbox-drawer-item-deselect-button')
-            return btn
+    async findClosestInsertButton() {
+        let el = document.querySelector('button[aria-label="Deselect Image"]')
+        if (el) {
+            return el
         }
-        return null
+
+        // Fallback.
+        const s = await getRemoteSelector('gemini', 'insertButton')
+        return document.querySelector(s)
     }
 
     getCurrentTheme() {
@@ -256,12 +313,12 @@ class GeminiAdapter {
         return btn
     }
 
-    initButton() {
+    async initButton() {
         if (document.getElementById('banana-btn')) {
             return true
         }
 
-        const imageBtn = this.findImageButton()
+        const imageBtn = await this.findClosestInsertButton()
         if (!imageBtn) {
             return false
         }
@@ -277,8 +334,8 @@ class GeminiAdapter {
         return true
     }
 
-    insertPrompt(promptText) {
-        const textarea = this.findPromptInput()
+    async insertPrompt(promptText) {
+        const textarea = await this.findPromptInput()
         if (textarea) {
             textarea.focus()
 
@@ -304,13 +361,13 @@ class GeminiAdapter {
     }
 
     startObserver() {
-        const observer = new MutationObserver(() => {
+        const observer = new MutationObserver(async () => {
             const existingBtn = document.getElementById('banana-btn')
-            const imageBtn = this.findImageButton()
+            const imageBtn = await this.findClosestInsertButton()
 
             if (imageBtn) {
                 if (!existingBtn) {
-                    this.initButton()
+                    await this.initButton()
                 }
             } else {
                 if (existingBtn) {

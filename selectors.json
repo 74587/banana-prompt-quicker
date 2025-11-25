@@ -1,0 +1,10 @@
+{
+    "aistudio": {
+        "promptInput": "ms-prompt-input-wrapper textarea",
+        "insertButton": "ms-run-button button"
+    },
+    "gemini": {
+        "promptInput": "div[aria-label=\"Enter a prompt here\"]",
+        "insertButton": "button[aria-label=\"Deselect Image\"]"
+    }
+}
