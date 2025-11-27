@@ -492,6 +492,19 @@
             color: #007aff;
         }
 
+        .badge-subcategory {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .badge-subcategory {
+                background: rgba(255, 255, 255, 0.1);
+                color: var(--text-secondary);
+            }
+        }
+
         .copy-overlay {
             position: absolute;
             top: 0;
@@ -993,7 +1006,7 @@
                     </div>
                 </div>
 
-                <button class="filter-btn" data-filter="generate">生图</button>
+                <button class="filter-btn" data-filter="generate">文生图</button>
                 <button class="filter-btn" data-filter="edit">编辑</button>
             </div>
         </div>
@@ -1187,7 +1200,7 @@
                 // card.onclick removed to prevent conflict with buttons
 
                 const modeBadgeClass = prompt.mode === 'edit' ? 'badge-edit' : 'badge-generate';
-                const modeLabel = prompt.mode === 'edit' ? '编辑' : '生图';
+                const modeLabel = prompt.mode === 'edit' ? '编辑' : '文生图';
 
                 // Use encodeURIComponent to safely handle all special characters including newlines
                 const safePrompt = encodeURIComponent(prompt.prompt);
@@ -1201,7 +1214,10 @@
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                                 <span>${prompt.author}</span>
                             </div>
-                            <span class="badge ${modeBadgeClass}">${modeLabel}</span>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                ${prompt.sub_category ? `<span class="badge badge-subcategory">${prompt.sub_category}</span>` : ''}
+                                <span class="badge ${modeBadgeClass}">${modeLabel}</span>
+                            </div>
                         </div>
                     </div>
                     <div class="copy-overlay">
@@ -1230,7 +1246,8 @@
             const filtered = allPrompts.filter(prompt => {
                 const matchesSearch = prompt.title.toLowerCase().includes(searchTerm) ||
                     prompt.author.toLowerCase().includes(searchTerm) ||
-                    prompt.prompt.toLowerCase().includes(searchTerm);
+                    prompt.prompt.toLowerCase().includes(searchTerm) ||
+                    (prompt.sub_category && prompt.sub_category.toLowerCase().includes(searchTerm));
 
                 const matchesMode = currentFilter === 'all' || prompt.mode === currentFilter;
 

@@ -24,8 +24,6 @@ class BananaModal {
         this.categories = new Set(['全部'])
         this.selectedCategory = 'all'
         this.sortMode = 'recommend' // 'recommend' | 'random'
-        this.loadPrompts()
-        this.loadSortMode()
         this.currentPage = 1
         this.pageSize = this.isMobile() ? 8 : 12
         this.filteredPrompts = []
@@ -210,6 +208,8 @@ class BananaModal {
 
         if (!this._isInitialized) {
             // 首次显示：完整初始化
+            this.loadPrompts()
+            this.loadSortMode()
             this.updateCategoryDropdown()
             this.applyFilters(true)
             this._isInitialized = true
@@ -416,7 +416,7 @@ class BananaModal {
         const filters = [
             { key: 'favorite', label: '收藏' },
             { key: 'custom', label: '自定义' },
-            { key: 'generate', label: '生图' },
+            { key: 'generate', label: '文生图' },
             { key: 'edit', label: '编辑' }
         ]
 
@@ -562,7 +562,8 @@ class BananaModal {
             const matchesSearch = !keyword ||
                 prompt.title.toLowerCase().includes(keyword) ||
                 prompt.prompt.toLowerCase().includes(keyword) ||
-                prompt.author.toLowerCase().includes(keyword)
+                prompt.author.toLowerCase().includes(keyword) ||
+                (prompt.sub_category && prompt.sub_category.toLowerCase().includes(keyword))
 
             if (!matchesSearch) return false
 
@@ -935,7 +936,7 @@ class BananaModal {
         }
 
         const modeTag = document.createElement('span')
-        let tagText = '生图'
+        let tagText = '文生图'
         let tagBg = ''
         let tagColor = ''
 
@@ -946,7 +947,7 @@ class BananaModal {
             tagColor = theme === 'dark' ? '#a855f7' : '#9333ea'
         } else {
             const isEdit = prompt.mode === 'edit'
-            tagText = isEdit ? '编辑' : '生图'
+            tagText = isEdit ? '编辑' : '文生图'
             tagBg = theme === 'dark'
                 ? (isEdit ? 'rgba(10, 132, 255, 0.15)' : 'rgba(48, 209, 88, 0.15)')
                 : (isEdit ? 'rgba(0, 122, 255, 0.12)' : 'rgba(52, 199, 89, 0.12)')
@@ -959,6 +960,16 @@ class BananaModal {
         modeTag.textContent = tagText
 
         bottomRow.appendChild(author)
+
+        if (prompt.sub_category) {
+            const subTag = document.createElement('span')
+            const subTagBg = theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)'
+
+            subTag.style.cssText = `background: ${subTagBg}; color: ${colors.textSecondary}; padding: 4px 10px; border-radius: 12px; font-size: ${mobile ? '12px' : '11px'}; font-weight: 600; margin-right: 6px; flex-shrink: 0; backdrop-filter: blur(10px);`
+            subTag.textContent = prompt.sub_category
+            bottomRow.appendChild(subTag)
+        }
+
         bottomRow.appendChild(modeTag)
         content.appendChild(title)
         content.appendChild(bottomRow)
@@ -1103,7 +1114,6 @@ class BananaModal {
         imageContainer.appendChild(uploadTip)
         imageContainer.appendChild(clearImgBtn)
 
-        const promptInput = createInput('Prompt 内容', true)
 
         // Category Dropdown for Add Prompt
         const categoryContainer = document.createElement('div')
@@ -1227,6 +1237,10 @@ class BananaModal {
         categoryContainer.appendChild(categoryTrigger)
         categoryContainer.appendChild(categoryOptions)
 
+        // Sub-Category Input
+        const subCategoryInput = createInput('子分类 (可选)')
+
+        const promptInput = createInput('Prompt 内容', true)
         const modeContainer = document.createElement('div')
         modeContainer.style.display = 'flex'
         modeContainer.style.gap = '16px'
@@ -1248,7 +1262,7 @@ class BananaModal {
             return labelEl
         }
 
-        modeContainer.appendChild(createRadio('generate', '生图'))
+        modeContainer.appendChild(createRadio('generate', '文生图'))
         modeContainer.appendChild(createRadio('edit', '编辑'))
 
         const btnContainer = document.createElement('div')
@@ -1301,11 +1315,14 @@ class BananaModal {
                 }
             }
 
+            const subCategoryVal = subCategoryInput.value.trim()
+
             await this.saveCustomPrompt({
                 title: titleVal,
                 prompt: promptVal,
                 mode: selectedMode,
                 category: selectedAddCategory,
+                sub_category: subCategoryVal || undefined,
                 preview: previewDataUrl
             })
             document.body.removeChild(overlay)
@@ -1330,6 +1347,7 @@ class BananaModal {
         dialog.appendChild(titleInput)
         dialog.appendChild(imageContainer)
         dialog.appendChild(categoryContainer)
+        dialog.appendChild(subCategoryInput)
         dialog.appendChild(promptInput)
         dialog.appendChild(modeContainer)
         dialog.appendChild(btnContainer)
