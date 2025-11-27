@@ -1,4 +1,5 @@
 {
+    "comment": "Deprecated, use config.json",
     "aistudio": {
         "promptInput": "ms-prompt-input-wrapper textarea",
         "insertButton": "ms-run-button button"

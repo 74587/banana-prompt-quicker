@@ -30,38 +30,8 @@ function getDefaultThemeColors(theme = 'light') {
 }
 
 async function getRemoteSelector(platform, type) {
-    const CACHE_KEY = 'selector_config'
-    const CACHE_DURATION = 2 * 60 * 1000 // 2分钟
-    const CONFIG_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/selectors.json'
-
-    // 1. 尝试从缓存获取
-    const cached = await chrome.storage.local.get(CACHE_KEY)
-    if (cached[CACHE_KEY]) {
-        const { data, timestamp } = cached[CACHE_KEY]
-        if (Date.now() - timestamp < CACHE_DURATION) {
-            return data[platform]?.[type]
-        }
-    }
-
-    // 2. 请求远程配置
-    try {
-        const response = await fetch(CONFIG_URL)
-        const config = await response.json()
-
-        // 缓存配置
-        await chrome.storage.local.set({
-            [CACHE_KEY]: {
-                data: config,
-                timestamp: Date.now()
-            }
-        })
-
-        return config[platform]?.[type]
-    } catch (error) {
-        console.warn('获取远程 selector 失败:', error)
-        // 降级:使用过期缓存
-        return cached[CACHE_KEY]?.data?.[platform]?.[type]
-    }
+    const c = await window.PromptManager.get()
+    return c['selectors'][platform]?.[type]
 }
 
 class AIStudioAdapter {
