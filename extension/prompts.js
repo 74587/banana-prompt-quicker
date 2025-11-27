@@ -1,7 +1,7 @@
 const GITHUB_PROMPTS_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/prompts.json';
 const CACHE_KEY = 'banana_prompts_cache';
 const CACHE_TIMESTAMP_KEY = 'banana_prompts_cache_time';
-const CACHE_DURATION = 2 * 60 * 1000; // 2 min
+const CACHE_DURATION = 60 * 60 * 1000; // 60 min
 
 window.PromptManager = {
     async get() {
@@ -12,12 +12,10 @@ window.PromptManager = {
             const cacheTime = cache[CACHE_TIMESTAMP_KEY];
             const now = Date.now();
             if (cachedPrompts && cacheTime && (now - cacheTime < CACHE_DURATION)) {
-                console.log('Using cached prompts');
                 return cachedPrompts;
             }
 
             // 2. Fetch from GitHub
-            console.log('Fetching prompts from GitHub...');
             const response = await fetch(GITHUB_PROMPTS_URL);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -30,7 +28,6 @@ window.PromptManager = {
                 [CACHE_KEY]: data,
                 [CACHE_TIMESTAMP_KEY]: now
             });
-            console.log('Prompts updated from GitHub');
             return data;
 
         } catch (error) {
