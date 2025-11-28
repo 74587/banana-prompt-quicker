@@ -3,6 +3,7 @@ class BaseSite {
         this.modal = null;
         this._buttonInserting = false;
         this._pollTimer = null;
+        this._mutationTimer = null;
         this.lastFocusedElement = document.addEventListener('focusin', (e) => {
             if (this.isEditableElement(e.target)) {
                 this.lastFocusedElement = e.target;
@@ -114,6 +115,13 @@ class BaseSite {
 
         if (this._pollTimer) clearInterval(this._pollTimer);
 
+        // Try immediately
+        const success = await this._insertButtonIfNotExists();
+        if (success) {
+            this._buttonInserting = false;
+            return;
+        }
+
         let attempts = 0;
         const maxAttempts = 20;
         this._pollTimer = setInterval(async () => {
@@ -124,29 +132,45 @@ class BaseSite {
                 this._pollTimer = null;
                 this._buttonInserting = false;
             }
-        }, 500);
+        }, 200);
     }
 
     async ensureButtonByWatch() {
-        const f = () => {
-            this._ensureButton();
-        };
-
         // Init
-        f();
+        this._handleMutation();
 
         // Handle changed.
-        const observer = new MutationObserver((mutations) => {
-            if (!window.DOM.querySelectorShadowDom('#banana-btn')) {
-                f();
-            }
+        const observer = new MutationObserver(() => {
+            this._debouncedHandleMutation();
         });
         observer.observe(document.body, { childList: true, subtree: true });
 
         // Handle navigation.
-        window.addEventListener('popstate', f);
-        window.addEventListener('pushstate', f);
-        window.addEventListener('replacestate', f);
+        const handler = () => this._handleMutation();
+        window.addEventListener('popstate', handler);
+        window.addEventListener('pushstate', handler);
+        window.addEventListener('replacestate', handler);
+    }
+
+    _debouncedHandleMutation() {
+        if (this._mutationTimer) clearTimeout(this._mutationTimer);
+        this._mutationTimer = setTimeout(() => {
+            this._handleMutation();
+        }, 50);
+    }
+
+    async _handleMutation() {
+        const btn = window.DOM.querySelectorShadowDom('#banana-btn');
+        const target = await this.findTargetButton();
+
+        if (btn && !target) {
+            // Target is gone, remove button
+            btn.remove();
+        }
+
+        if (!btn && target) {
+            this._ensureButton();
+        }
     }
 
     createButton() {
