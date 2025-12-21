@@ -1,8 +1,8 @@
 {
     "selectors": {
         "aistudio": {
-            "promptInput": "ms-prompt-input-wrapper textarea",
-            "insertButton": "ms-run-button button"
+            "promptInput": "ms-prompt-box textarea",
+            "insertButton": "ms-prompt-box ms-run-button button"
         },
         "gemini": {
             "promptInput": "div.ql-editor[contenteditable=\"true\"]",
