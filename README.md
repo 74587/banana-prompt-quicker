@@ -43,10 +43,10 @@ https://chromewebstore.google.com/detail/banana-prompt-quicker/hgfgfocicepifboli
 
 ### 移动端
 
-推荐使用 **Yandex Browser**，直接从 Chrome Web Store 安装即可：
+推荐使用 **Cronmite**，直接从 Chrome Web Store 安装即可：
 
-1. 下载并安装 Yandex Browser
-2. 在 Yandex Browser 中访问上面的 Chrome Web Store 链接
+1. 下载并安装 Cronmite
+2. 在 Cronmite 中访问上面的 Chrome Web Store 链接
 3. 点击「添加至 Chrome」即可安装
 
 ### 油猴版本
