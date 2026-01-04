@@ -255,13 +255,9 @@ window.UI.PromptForm = class PromptForm {
             style: 'margin-bottom: 8px;'
         });
 
-        const placeholderText = h('span', {
-            style: `font-size: 12px; color: ${colors.textSecondary}; font-weight: 500;`
-        }, '上传封面');
-
         const placeholderContainer = h('div', {
             style: 'display: flex; flex-direction: column; align-items: center; pointer-events: none;'
-        }, [placeholderIcon, placeholderText]);
+        }, [placeholderIcon]);
 
         // Preview Image
         const previewImg = h('img', {
@@ -341,21 +337,12 @@ window.UI.PromptForm = class PromptForm {
             style: 'display: flex; justify-content: space-between; align-items: center;'
         });
 
-
-        const countLabel = h('span', {
-            style: `font-size: 12px; color: ${colors.textSecondary}; font-weight: 500;`
-        }, `${this.state.referenceImages.length} / 4`);
-
-        header.appendChild(label);
-        header.appendChild(countLabel);
-
         const listContainer = h('div', {
             style: 'display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;'
         });
 
         const updateList = () => {
             listContainer.innerHTML = '';
-            countLabel.textContent = `${this.state.referenceImages.length}/4`;
 
             // Render existing images
             this.state.referenceImages.forEach((imgData, index) => {
