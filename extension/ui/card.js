@@ -53,7 +53,7 @@ window.UI.Card = {
             src: prompt.preview,
             alt: prompt.title,
             style: `width: 100%; height: ${mobile ? '180px' : '200px'}; object-fit: cover; flex-shrink: 0;`,
-            onclick: () => onInsert(prompt.prompt)
+            onclick: () => onInsert(prompt)
         });
 
         // Favorite Button
@@ -99,7 +99,7 @@ window.UI.Card = {
 
         const title = h('h3', {
             style: `font-size: ${mobile ? '15px' : '14px'}; font-weight: 500; color: ${colors.text}; margin: 0; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;`,
-            onclick: () => onInsert(prompt.prompt)
+            onclick: () => onInsert(prompt)
         }, prompt.title);
 
         const bottomRow = h('div', {
@@ -114,7 +114,7 @@ window.UI.Card = {
                     e.stopPropagation();
                     window.open(prompt.link, '_blank');
                 } else {
-                    onInsert(prompt.prompt);
+                    onInsert(prompt);
                 }
             },
             title: prompt.link ? '点击查看原贴' : ''

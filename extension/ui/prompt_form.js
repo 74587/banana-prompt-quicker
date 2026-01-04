@@ -12,7 +12,8 @@ window.UI.PromptForm = class PromptForm {
             selectedCategory: '',
             selectedMode: 'generate',
             selectedFile: null,
-            previewUrl: ''
+            previewUrl: '',
+            referenceImages: []
         };
 
         this.overlay = null;
@@ -32,6 +33,7 @@ window.UI.PromptForm = class PromptForm {
         this.state.selectedMode = existingPrompt?.mode || 'generate';
         this.state.selectedFile = null;
         this.state.previewUrl = existingPrompt?.preview || '';
+        this.state.referenceImages = existingPrompt?.referenceImages || [];
 
         // Create overlay
         this.overlay = h('div', {
@@ -58,8 +60,11 @@ window.UI.PromptForm = class PromptForm {
         // Mode Selection (Moved up)
         const modeContainer = this.createModeSelection();
 
-        // Image Upload
+        // Image Upload (Preview)
         const imageContainer = this.createImageUpload(existingPrompt);
+
+        // Reference Images Upload
+        const refImagesContainer = this.createReferenceImagesUpload();
 
         // Category & Sub-Category Row
         const categoryRow = h('div', {
@@ -94,6 +99,7 @@ window.UI.PromptForm = class PromptForm {
         dialog.appendChild(titleInput);
         dialog.appendChild(modeContainer); // Mode is now here
         dialog.appendChild(imageContainer);
+        dialog.appendChild(refImagesContainer);
         dialog.appendChild(categoryRow);   // Grouped row
         dialog.appendChild(promptInput);
         dialog.appendChild(btnContainer);
@@ -226,6 +232,121 @@ window.UI.PromptForm = class PromptForm {
         imageContainer.appendChild(clearBtn);
 
         return imageContainer;
+    }
+
+    createReferenceImagesUpload() {
+        const { h } = window.DOM;
+        const { colors } = this;
+
+        const container = h('div', {
+            style: 'display: flex; flex-direction: column; gap: 8px;'
+        });
+
+        const header = h('div', {
+            style: 'display: flex; justify-content: space-between; align-items: center;'
+        });
+
+        const label = h('span', {
+            style: `font-size: 14px; font-weight: 500; color: ${colors.text};`
+        }, '参考图 (可选, 最多4张)');
+
+        const countLabel = h('span', {
+            style: `font-size: 12px; color: ${colors.textSecondary};`
+        }, `${this.state.referenceImages.length}/4`);
+
+        header.appendChild(label);
+        header.appendChild(countLabel);
+
+        const listContainer = h('div', {
+            style: 'display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;'
+        });
+
+        const updateList = () => {
+            listContainer.innerHTML = '';
+            countLabel.textContent = `${this.state.referenceImages.length}/4`;
+
+            // Render existing images
+            this.state.referenceImages.forEach((imgData, index) => {
+                const item = h('div', {
+                    style: `position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid ${colors.border};`
+                });
+
+                const img = h('img', {
+                    src: imgData,
+                    style: 'width: 100%; height: 100%; object-fit: cover;'
+                });
+
+                const removeBtn = h('button', {
+                    innerHTML: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+                    style: 'position: absolute; top: 4px; right: 4px; width: 20px; height: 20px; border-radius: 50%; background: rgba(0,0,0,0.6); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;',
+                    onclick: () => {
+                        this.state.referenceImages.splice(index, 1);
+                        updateList();
+                    }
+                });
+
+                item.appendChild(img);
+                item.appendChild(removeBtn);
+                listContainer.appendChild(item);
+            });
+
+            // Add button (if less than 4)
+            if (this.state.referenceImages.length < 4) {
+                const addBtn = h('div', {
+                    style: `aspect-ratio: 1; border: 1px dashed ${colors.border}; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; background: ${colors.inputBg}; transition: all 0.2s;`,
+                    onmouseenter: (e) => {
+                        e.target.style.borderColor = colors.primary;
+                        e.target.style.background = colors.surfaceHover;
+                    },
+                    onmouseleave: (e) => {
+                        e.target.style.borderColor = colors.border;
+                        e.target.style.background = colors.inputBg;
+                    },
+                    onclick: () => fileInput.click()
+                });
+
+                const icon = h('div', {
+                    innerHTML: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${colors.textSecondary}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>`
+                });
+
+                addBtn.appendChild(icon);
+                listContainer.appendChild(addBtn);
+            }
+        };
+
+        const fileInput = h('input', {
+            type: 'file',
+            accept: 'image/*',
+            multiple: true,
+            style: 'display: none;',
+            onchange: async (e) => {
+                const files = Array.from(e.target.files);
+                if (!files.length) return;
+
+                const remainingSlots = 4 - this.state.referenceImages.length;
+                const filesToProcess = files.slice(0, remainingSlots);
+
+                for (const file of filesToProcess) {
+                    try {
+                        const dataUrl = await window.Utils.compressReferenceImage(file);
+                        this.state.referenceImages.push(dataUrl);
+                    } catch (err) {
+                        console.error('Failed to process reference image:', err);
+                    }
+                }
+
+                fileInput.value = ''; // Reset
+                updateList();
+            }
+        });
+
+        container.appendChild(header);
+        container.appendChild(listContainer);
+        container.appendChild(fileInput);
+
+        updateList();
+
+        return container;
     }
 
     createCategoryDropdown(categories) {
@@ -409,7 +530,8 @@ window.UI.PromptForm = class PromptForm {
                     mode: this.state.selectedMode,
                     category: this.state.selectedCategory,
                     sub_category: subCategoryVal || undefined,
-                    preview: previewDataUrl
+                    preview: previewDataUrl,
+                    referenceImages: this.state.referenceImages
                 };
 
                 if (this.onSave) {

@@ -242,7 +242,7 @@ class BananaModal {
                     theme,
                     colors,
                     mobile,
-                    onInsert: (text) => this.site.insertPrompt(text),
+                    onInsert: (prompt) => this.site.insertPrompt(prompt),
                     onToggleFavorite: async (promptId) => {
                         await this.store.toggleFavorite(promptId);
                         this.renderCards(); // Re-render to update star

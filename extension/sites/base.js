@@ -209,11 +209,26 @@ class BaseSite {
             el.isContentEditable;
     }
 
-    async insertPrompt(prompt) {
+    async insertPrompt(promptData) {
+        const promptText = typeof promptData === 'string' ? promptData : promptData.prompt;
+        const referenceImages = typeof promptData === 'object' ? promptData.referenceImages : null;
+
         const el = await this.findPromptInput();
         if (!el || !this.isEditableElement(el)) {
-            console.warn('Banana: No prompt input found.');
             return;
+        }
+
+        // Clear existing content
+        if (el.isContentEditable) {
+            el.innerHTML = '';
+        } else {
+            el.value = '';
+        }
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+
+        if (referenceImages && referenceImages.length > 0) {
+            await this.insertImages(referenceImages);
+            await new Promise(r => setTimeout(r, 800));
         }
 
         if (el.isContentEditable) {
@@ -225,7 +240,7 @@ class BaseSite {
                 if (el.contains(range.commonAncestorContainer)) {
                     range.deleteContents();
 
-                    const lines = prompt.split('\n');
+                    const lines = promptText.split('\n');
                     const fragment = document.createDocumentFragment();
 
                     lines.forEach((line, index) => {
@@ -244,7 +259,7 @@ class BaseSite {
             }
 
             if (!inserted) {
-                const htmlContent = prompt.split('\n').map(line => {
+                const htmlContent = promptText.split('\n').map(line => {
                     const escaped = line
                         .replace(/&/g, '&amp;')
                         .replace(/</g, '&lt;')
@@ -268,10 +283,10 @@ class BaseSite {
             const end = el.selectionEnd;
             const currentValue = el.value;
 
-            const newValue = currentValue.substring(0, start) + prompt + currentValue.substring(end);
+            const newValue = currentValue.substring(0, start) + promptText + currentValue.substring(end);
             el.value = newValue;
 
-            const newCursorPos = start + prompt.length;
+            const newCursorPos = start + promptText.length;
             el.setSelectionRange(newCursorPos, newCursorPos);
 
             el.dispatchEvent(new Event('input', { bubbles: true }));
@@ -281,5 +296,38 @@ class BaseSite {
         if (this.modal) {
             this.modal.hide();
         }
+    }
+
+    async insertImages(images) {
+        const target = await this.findPromptInput();
+        if (!target) return;
+
+        const files = [];
+        for (let i = 0; i < images.length; i++) {
+            const img = images[i];
+            const filename = `image${i + 1}.jpg`;
+            try {
+                let file;
+                if (img.startsWith('http')) {
+                    file = await window.Utils.urlToFile(img, filename);
+                } else {
+                    file = window.Utils.base64ToFile(img, filename);
+                }
+                files.push(file);
+            } catch (e) {
+                console.error('Banana: Failed to process image:', e);
+            }
+        }
+        if (files.length === 0) return;
+
+        const dataTransfer = new DataTransfer();
+        files.forEach(file => dataTransfer.items.add(file));
+        const pasteEvent = new ClipboardEvent('paste', {
+            bubbles: true,
+            cancelable: true,
+            clipboardData: dataTransfer
+        });
+
+        target.dispatchEvent(pasteEvent);
     }
 };
