@@ -1,3 +1,7 @@
+大厂 Go 云原生想转 AI 后端，有机会请联系我~
+
+---
+
 直接商店安装: https://chromewebstore.google.com/detail/banana-prompt-quicker/hgfgfocicepifbolifedlokjkknigoid?authuser=0&hl=zh-CN
 
 ---

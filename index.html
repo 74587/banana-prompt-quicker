@@ -937,6 +937,124 @@
             color: var(--text-secondary);
             font-weight: 500;
         }
+
+        /* Announcement Carousel */
+        .announcement-carousel {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 24px;
+            padding: 0 16px;
+        }
+
+        .announcement-wrapper {
+            position: relative;
+            background: linear-gradient(135deg, rgba(0, 113, 227, 0.08) 0%, rgba(52, 199, 89, 0.08) 100%);
+            border: 1px solid rgba(0, 113, 227, 0.15);
+            border-radius: var(--radius-md);
+            padding: 14px 20px;
+            overflow: hidden;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .announcement-wrapper {
+                background: linear-gradient(135deg, rgba(41, 151, 255, 0.1) 0%, rgba(52, 199, 89, 0.1) 100%);
+                border-color: rgba(41, 151, 255, 0.2);
+            }
+        }
+
+        .announcement-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: calc(100% - 40px);
+            opacity: 0;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .announcement-item.active {
+            opacity: 1;
+            position: relative;
+            top: auto;
+            left: auto;
+            transform: none;
+        }
+
+        .announcement-icon {
+            flex-shrink: 0;
+            font-size: 16px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .announcement-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .announcement-link {
+            color: var(--accent);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .announcement-link:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .announcement-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .announcement-indicator {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .announcement-indicator.active {
+            background: var(--accent);
+            width: 18px;
+            border-radius: 3px;
+        }
+
+        .announcement-indicator:hover {
+            background: var(--text-secondary);
+        }
+
+        .announcement-indicator.active:hover {
+            background: var(--accent-hover);
+        }
     </style>
 </head>
 
@@ -1022,6 +1140,16 @@
             </div>
         </div>
 
+        <!-- Announcement Carousel -->
+        <div class="announcement-carousel" id="announcementCarousel">
+            <div class="announcement-wrapper" id="announcementWrapper">
+                <!-- Announcements will be injected here -->
+            </div>
+            <div class="announcement-indicators" id="announcementIndicators">
+                <!-- Indicators will be injected here -->
+            </div>
+        </div>
+
         <div id="promptsGrid" class="grid">
             <!-- Prompts will be injected here -->
             <div class="card" style="height: 300px; pointer-events: none;">
@@ -1096,10 +1224,133 @@
 
     <script>
         const GITHUB_PROMPTS_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/prompts.json';
+        const GITHUB_CONFIG_URL = 'https://raw.githubusercontent.com/glidea/banana-prompt-quicker/main/config.json';
         let allPrompts = [];
         let currentFilter = 'all';
         let currentCategory = 'all';
         let recentWeekEnabled = false;
+        let announcements = [];
+        let currentAnnouncementIndex = 0;
+        let announcementInterval = null;
+
+        // Announcement Carousel
+        async function fetchAnnouncements() {
+            try {
+                const response = await fetch(GITHUB_CONFIG_URL);
+                if (!response.ok) throw new Error('Failed to fetch config');
+                const config = await response.json();
+                announcements = (config.announcements || []).sort((a, b) => (b.priority || 0) - (a.priority || 0));
+                if (announcements.length > 0) {
+                    renderAnnouncements();
+                    startAnnouncementCarousel();
+                } else {
+                    document.getElementById('announcementCarousel').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error loading announcements:', error);
+                document.getElementById('announcementCarousel').style.display = 'none';
+            }
+        }
+
+        function renderAnnouncements() {
+            const wrapper = document.getElementById('announcementWrapper');
+            const indicators = document.getElementById('announcementIndicators');
+
+            wrapper.innerHTML = '';
+            indicators.innerHTML = '';
+
+            announcements.forEach((announcement, index) => {
+                // Create announcement item
+                const item = document.createElement('div');
+                item.className = `announcement-item${index === 0 ? ' active' : ''}`;
+                item.dataset.index = index;
+
+                const icon = document.createElement('span');
+                icon.className = 'announcement-icon';
+                icon.textContent = '📢';
+
+                const textSpan = document.createElement('span');
+                textSpan.className = 'announcement-text';
+
+                if (announcement.link) {
+                    const link = document.createElement('a');
+                    link.className = 'announcement-link';
+                    link.href = announcement.link;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = announcement.content;
+                    textSpan.appendChild(link);
+                } else {
+                    textSpan.textContent = announcement.content;
+                }
+
+                item.appendChild(icon);
+                item.appendChild(textSpan);
+                wrapper.appendChild(item);
+
+                // Create indicator
+                if (announcements.length > 1) {
+                    const indicator = document.createElement('div');
+                    indicator.className = `announcement-indicator${index === 0 ? ' active' : ''}`;
+                    indicator.dataset.index = index;
+                    indicator.addEventListener('click', () => goToAnnouncement(index));
+                    indicators.appendChild(indicator);
+                }
+            });
+
+            // Hide indicators if only one announcement
+            if (announcements.length <= 1) {
+                indicators.style.display = 'none';
+            }
+
+            // Pause on hover
+            wrapper.addEventListener('mouseenter', pauseAnnouncementCarousel);
+            wrapper.addEventListener('mouseleave', resumeAnnouncementCarousel);
+        }
+
+        function goToAnnouncement(index) {
+            if (index === currentAnnouncementIndex) return;
+
+            const items = document.querySelectorAll('.announcement-item');
+            const indicators = document.querySelectorAll('.announcement-indicator');
+
+            items[currentAnnouncementIndex].classList.remove('active');
+            indicators[currentAnnouncementIndex]?.classList.remove('active');
+
+            currentAnnouncementIndex = index;
+
+            items[currentAnnouncementIndex].classList.add('active');
+            indicators[currentAnnouncementIndex]?.classList.add('active');
+
+            // Reset interval
+            if (announcementInterval) {
+                clearInterval(announcementInterval);
+                startAnnouncementCarousel();
+            }
+        }
+
+        function nextAnnouncement() {
+            const nextIndex = (currentAnnouncementIndex + 1) % announcements.length;
+            goToAnnouncement(nextIndex);
+        }
+
+        function startAnnouncementCarousel() {
+            if (announcements.length <= 1) return;
+            announcementInterval = setInterval(nextAnnouncement, 4000);
+        }
+
+        function pauseAnnouncementCarousel() {
+            if (announcementInterval) {
+                clearInterval(announcementInterval);
+                announcementInterval = null;
+            }
+        }
+
+        function resumeAnnouncementCarousel() {
+            if (!announcementInterval && announcements.length > 1) {
+                startAnnouncementCarousel();
+            }
+        }
 
         // DOM Elements
         const grid = document.getElementById('promptsGrid');
@@ -1359,6 +1610,7 @@
 
         // Initialize
         fetchPrompts();
+        fetchAnnouncements();
 
     </script>
 </body>

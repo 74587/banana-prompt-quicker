@@ -28,7 +28,17 @@
     "announcements": [
         {
             "content": "在找 AI 方面的机会，感兴趣可联系我",
-            "priority": 2
+            "priority": 5
+        },
+        {
+            "content": "AI 时代，大家是否更累了",
+            "link": "https://www.xiaohongshu.com/discovery/item/6960c2bd0000000021033987?source=webshare&xhsshare=pc_web&xsec_token=AB9UeUpPVu8pOE1TMohAum2q_G736yYjhHGDM630FjE0M=&xsec_source=pc_share",
+            "priority": 4
+        },
+        {
+            "content": "近期更新：生成疯狂动物城风格海报",
+            "link": "https://www.xiaohongshu.com/discovery/item/6960a651000000000a02b79c?source=webshare&xhsshare=pc_web&xsec_token=AB9UeUpPVu8pOE1TMohAum2poqNNdj_gfrq_ks-jqPcYM=&xsec_source=pc_share",
+            "priority": 3
         },
         {
             "content": "Gemini 官网审查过于严格，部分提示词生成失败，请尝试其他渠道，如 Gemini Enterprise"
