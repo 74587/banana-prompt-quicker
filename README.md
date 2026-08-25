@@ -1,12 +1,11 @@
 ---
 
-<img width="400" height="200" alt="33f1d0d49cce103272da3821f66a2820" src="https://github.com/user-attachments/assets/fd909546-1544-4b7d-a7c1-67244d729e4f" />
+<a href="https://go.apimart.ai/gh-banana-prompt-quicker">
+  <img src="images/apimart-sponsor.jpg" width="800" alt="APIMart AI image and video generation API">
+</a>
 
-本项目由 [code0.ai](https://code0.ai?source=claudeworkerproxy) 赞助 —— 一站接入 gpt-image / Gemini / Claude 等主流 AI 模型，稳定不掉线，按量计费即充即用，专为 AI 创作者打造。注册后联系客服可免费领取测试额度，支持企业对接及开票。
+感谢 [APIMart](https://go.apimart.ai/gh-banana-prompt-quicker) 赞助了本项目！APIMart 是专注 AI 图片/视频生成的低价 API 平台，GPT-Image-2 低至 $0.006/张，1 美元可出图 160+ 张。图片、视频一套异步 API 通吃，提交任务拿 ID、回调取结果，跑批万张不超时、换模型不改代码。按量付费、无月费，通过[此注册链接](https://go.apimart.ai/gh-banana-prompt-quicker)注册即可开用。
 
-<img width="400" height="200" alt="4ca65f573c3d7b3dec0cd829d86262f6" src="https://github.com/user-attachments/assets/9fcffadc-2b95-411d-b778-bf33809f7ef7" />
-
-感谢 [Claude API](https://www.claudeapi.com?source=claudeworkerproxy) 赞助本项目！Claude API 是专注 Claude 模型的官方渠道 API 服务商，基于 Anthropic 官方 Key 与 AWS Bedrock 官方渠道，提供稳定的 Claude Code 与 Agent 应用接入体验，支持 Claude 全系列模型，保留 Tool Use、长上下文等官方能力。服务非逆向、非降智，适合 Claude Code 深度用户、Agent 工程师与企业技术团队使用。通过[专属链接](https://www.claudeapi.com?source=claudeworkerproxy)注册后联系客服，可领取免费测试额度，并支持开票和团队对接。
 
 ---
 
@@ -20,7 +19,6 @@
 * [Gemini 官网](https://gemini.google.com/)
 * [Google AI Studio](https://aistudio.google.com/)
 * [Gemini Enterprise](https://business.gemini.google/)
-* [kokorolab](https://kokorolab.net/zh/home?referral=JBM9AGUV) 👈🏻 金主爸爸。欢迎更多垂类生图场景的应用合作！
 * 任意网站输入框，右键插入！
 * 扩展中...
 
